@@ -10,6 +10,14 @@ Klepet.prototype.posljiSporocilo = function(kanal, besedilo) {
   this.socket.emit('sporocilo', sporocilo);
 };
 
+Klepet.prototype.posljiSlike = function(kanal, nasloviSlik) {
+  var sporocilo = {
+    kanal: kanal,
+    nasloviSlik: nasloviSlik
+  };
+  this.socket.emit('slike', sporocilo);
+}
+
 Klepet.prototype.spremeniKanal = function(kanal) {
   this.socket.emit('pridruzitevZahteva', {
     novKanal: kanal

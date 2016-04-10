@@ -12,6 +12,18 @@ function divElementHtmlTekst(sporocilo) {
   return $('<div></div>').html('<i>' + sporocilo + '</i>');
 }
 
+function imgElementFromURL(urlNaslov) {
+  return $('<div></div>').html('<img src=' + urlNaslov + 'class="slika"></img>');
+}
+
+function prikaziSlike(nasloviSlik) {
+  for (var i = 0; i < nasloviSlik.length; i++) {
+    var urlSlike = nasloviSlik[i];
+    var slikaElement= imgElementFromURL(urlSlike);
+    $('#sporocila').append(slikaElement);
+    }
+}
+
 function procesirajVnosUporabnika(klepetApp, socket) {
   var sporocilo = $('#poslji-sporocilo').val();
   sporocilo = dodajSmeske(sporocilo);
@@ -23,10 +35,16 @@ function procesirajVnosUporabnika(klepetApp, socket) {
       $('#sporocila').append(divElementHtmlTekst(sistemskoSporocilo));
     }
   } else {
+    var nasloviSlik = preglejZaSlike(sporocilo);
     sporocilo = filtirirajVulgarneBesede(sporocilo);
     klepetApp.posljiSporocilo(trenutniKanal, sporocilo);
     $('#sporocila').append(divElementEnostavniTekst(sporocilo));
     $('#sporocila').scrollTop($('#sporocila').prop('scrollHeight'));
+    
+    if (nasloviSlik) {
+      klepetApp.posljiSlike(trenutniKanal, nasloviSlik);
+      prikaziSlike(nasloviSlik);
+    }
   }
 
   $('#poslji-sporocilo').val('');
@@ -39,6 +57,27 @@ var vulgarneBesede = [];
 $.get('/swearWords.txt', function(podatki) {
   vulgarneBesede = podatki.split('\r\n');
 });
+
+function preglejZaSlike(vhod) {
+  var nasloviSlik = [];
+  var besede = vhod.split(" ");
+  for (var i = 0; i < besede.length; i++) {
+    var lastInd = besede[i].length - 1;
+    var beseda = besede[i];
+    var testString = beseda.slice(lastInd - 3);
+    if     (besede[i].startsWith('http://')
+          || besede[i].startsWith('https://'))
+    {
+      if (testString == '.jpg'
+          || testString == '.gif'
+          || testString == '.png') 
+      {
+          nasloviSlik.push(besede[i]);
+      }
+    }
+  }
+  return nasloviSlik;
+}
 
 function filtirirajVulgarneBesede(vhod) {
   for (var i in vulgarneBesede) {
@@ -93,6 +132,10 @@ $(document).ready(function() {
       klepetApp.procesirajUkaz('/pridruzitev ' + $(this).text());
       $('#poslji-sporocilo').focus();
     });
+  });
+  
+  socket.on('slike', function(sporocilo) {
+    prikaziSlike(sporocilo.nasloviSlik);
   });
 
   socket.on('uporabniki', function(uporabniki) {
