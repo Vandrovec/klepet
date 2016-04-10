@@ -32,7 +32,7 @@ function procesirajVnosUporabnika(klepetApp, socket) {
   $('#poslji-sporocilo').val('');
 }
 
-var socket = io.connect();
+var socket;
 var trenutniVzdevek = "", trenutniKanal = "";
 
 var vulgarneBesede = [];
@@ -53,6 +53,7 @@ function filtirirajVulgarneBesede(vhod) {
 }
 
 $(document).ready(function() {
+  socket = io.connect();
   var klepetApp = new Klepet(socket);
 
   socket.on('vzdevekSpremembaOdgovor', function(rezultat) {
@@ -99,6 +100,10 @@ $(document).ready(function() {
     for (var i=0; i < uporabniki.length; i++) {
       $('#seznam-uporabnikov').append(divElementEnostavniTekst(uporabniki[i]));
     }
+    $('#seznam-uporabnikov div').click(function() {
+      document.getElementById('poslji-sporocilo').value = '/zasebno \"' + $(this).text() + '\" ';
+      document.getElementById('poslji-sporocilo').focus();
+    });
   });
 
   setInterval(function() {
